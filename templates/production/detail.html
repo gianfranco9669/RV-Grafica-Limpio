@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load form_filters %}
+{% block title %}Orden {{ order.number }} · RV Gráfica{% endblock %}
+{% block content %}
+<div class="container-xxl">
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <h1 class="h3 mb-1">Orden {{ order.number }}</h1>
+      <p class="text-muted mb-0">{{ order.client.name }} · Entrega {{ order.due_date|date:"d/m/Y" }}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <form method="post" action="{% url 'production:change_status' order.pk %}">
+        {% csrf_token %}
+        <div class="input-group">
+          <select class="form-select" name="status">
+            {% for value,label in order.Status.choices %}
+            <option value="{{ value }}" {% if value == order.status %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <button class="btn btn-outline-primary" type="submit">Actualizar estado</button>
+        </div>
+      </form>
+      <a class="btn btn-outline-secondary" href="{% url 'production:edit' order.pk %}">Editar</a>
+    </div>
+  </div>
+  <div class="row g-4">
+    <div class="col-12 col-xl-8">
+      <div class="card card-erp mb-4">
+        <div class="card-header bg-white border-0 pb-0 d-flex justify-content-between align-items-center">
+          <h2 class="h5 mb-0">Detalle del trabajo</h2>
+          <span class="badge bg-secondary badge-status">Área total: {{ order.total_area_m2 }} m²</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Concepto</th>
+                  <th>Material</th>
+                  <th class="text-end">m²</th>
+                  <th class="text-end">Precio</th>
+                  <th class="text-end">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                  <td>{{ item.concept }}</td>
+                  <td>{{ item.material.name }}</td>
+                  <td class="text-end">{{ item.area_m2 }}</td>
+                  <td class="text-end">${{ item.unit_price }}</td>
+                  <td class="text-end">${{ item.subtotal }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">Sin ítems cargados.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot class="table-light">
+                <tr>
+                  <th colspan="4" class="text-end">Total estimado</th>
+                  <th class="text-end">${{ order.total_amount }}</th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="card card-erp">
+        <div class="card-header bg-white border-0 pb-0">
+          <h2 class="h5 mb-0">Materiales utilizados</h2>
+        </div>
+        <div class="card-body">
+          <form method="post" action="{% url 'production:add_material' order.pk %}" class="row g-3 mb-4">
+            {% csrf_token %}
+            <div class="col-md-5">{{ material_form.material.label_tag }}{{ material_form.material|add_class:"form-select" }}</div>
+            <div class="col-md-3">{{ material_form.quantity_used.label_tag }}{{ material_form.quantity_used|add_class:"form-control" }}</div>
+            <div class="col-md-2">{{ material_form.unit.label_tag }}{{ material_form.unit|add_class:"form-control" }}</div>
+            <div class="col-md-2 align-self-end"><button class="btn btn-primary w-100" type="submit">Agregar</button></div>
+          </form>
+          <ul class="list-group list-group-flush">
+            {% for usage in order.material_usages.all %}
+            <li class="list-group-item d-flex justify-content-between">
+              <span>{{ usage.material.name }} ({{ usage.unit }})</span>
+              <span class="fw-semibold">{{ usage.quantity_used }}</span>
+            </li>
+            {% empty %}
+            <li class="list-group-item text-muted">Sin materiales registrados.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-xl-4">
+      <div class="card card-erp mb-4">
+        <div class="card-header bg-white border-0 pb-0">
+          <h2 class="h5 mb-0">Agregar ítem</h2>
+        </div>
+        <div class="card-body">
+          <form method="post" action="{% url 'production:add_item' order.pk %}" novalidate>
+            {% csrf_token %}
+            {% for field in item_form %}
+            <div class="mb-3">
+              <label class="form-label" for="id_{{ field.name }}">{{ field.label }}</label>
+              {{ field|add_class:"form-control" }}
+              {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            {% endfor %}
+            <button class="btn btn-primary w-100" type="submit">Agregar detalle</button>
+          </form>
+        </div>
+      </div>
+      <div class="card card-erp">
+        <div class="card-header bg-white border-0 pb-0">
+          <h2 class="h5 mb-0">Datos generales</h2>
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-5">Cliente</dt><dd class="col-7">{{ order.client.name }}</dd>
+            <dt class="col-5">Asignado a</dt><dd class="col-7">{{ order.assigned_to.get_full_name|default:"Sin asignar" }}</dd>
+            <dt class="col-5">Entrega</dt><dd class="col-7">{{ order.due_date|date:"d/m/Y" }}</dd>
+            <dt class="col-5">Estado</dt><dd class="col-7">{{ order.get_status_display }}</dd>
+            <dt class="col-5">Presupuesto</dt><dd class="col-7">{% if order.budget %}<a href="{% url 'budgets:detail' order.budget.pk %}">#{{ order.budget.number }}</a>{% else %}-{% endif %}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

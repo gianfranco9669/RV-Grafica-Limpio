@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load form_filters %}
+{% block title %}Contabilidad · RV Gráfica{% endblock %}
+{% block content %}
+<div class="container-xxl">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1">Asientos contables</h1>
+      <p class="text-muted mb-0">Subdiario de IVA, mayores y sumas y saldos en un único lugar.</p>
+    </div>
+  </div>
+  <div class="card card-erp mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-3">{{ filter_form.date_from.label_tag }}{{ filter_form.date_from|add_class:"form-control" }}</div>
+        <div class="col-md-3">{{ filter_form.date_to.label_tag }}{{ filter_form.date_to|add_class:"form-control" }}</div>
+        <div class="col-md-4">{{ filter_form.account.label_tag }}{{ filter_form.account|add_class:"form-select" }}</div>
+        <div class="col-md-2 align-self-end text-end"><button class="btn btn-outline-primary">Filtrar</button></div>
+      </form>
+    </div>
+  </div>
+  <div class="card card-erp mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between">
+        <span>Total Debe</span><strong>${{ totals.total_debit|default:0 }}</strong>
+      </div>
+      <div class="d-flex justify-content-between">
+        <span>Total Haber</span><strong>${{ totals.total_credit|default:0 }}</strong>
+      </div>
+    </div>
+  </div>
+  {% for entry in entries %}
+  <div class="card card-erp mb-3">
+    <div class="card-header bg-white border-0 d-flex justify-content-between">
+      <div>
+        <h2 class="h5 mb-0">Asiento #{{ entry.id }}</h2>
+        <small class="text-muted">{{ entry.date|date:"d/m/Y" }} · {{ entry.description }}</small>
+      </div>
+      <span class="badge bg-primary-subtle text-primary-emphasis badge-status">Total ${{ entry.debit_total }}</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Cuenta</th>
+              <th>Descripción</th>
+              <th class="text-end">Debe</th>
+              <th class="text-end">Haber</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for line in entry.lines.all %}
+            <tr>
+              <td>{{ line.account.code }} - {{ line.account.name }}</td>
+              <td>{{ line.description }}</td>
+              <td class="text-end">${{ line.debit }}</td>
+              <td class="text-end">${{ line.credit }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="alert alert-light">No hay asientos para los filtros seleccionados.</div>
+  {% endfor %}
+</div>
+{% endblock %}
