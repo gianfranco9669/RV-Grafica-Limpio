@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load form_filters %}
+{% block title %}Gastos · RV Gráfica{% endblock %}
+{% block content %}
+<div class="container-xl">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1">Gastos operativos</h1>
+      <p class="text-muted mb-0">Nafta, seguros, patentes y cualquier otro gasto integrado a contabilidad.</p>
+    </div>
+    <a class="btn btn-primary" href="{% url 'expenses:create' %}"><i class="bi bi-plus-lg me-1"></i>Nuevo gasto</a>
+  </div>
+  <div class="card card-erp mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-3">{{ filter_form.category.label_tag }}{{ filter_form.category|add_class:"form-select" }}</div>
+        <div class="col-md-3">
+          <label class="form-label" for="id_provider">Proveedor</label>
+          <input class="form-control" type="text" name="provider" id="id_provider" value="{{ filter_form['provider'].value }}" />
+        </div>
+        <div class="col-md-2">{{ filter_form.date_from.label_tag }}{{ filter_form.date_from|add_class:"form-control" }}</div>
+        <div class="col-md-2">{{ filter_form.date_to.label_tag }}{{ filter_form.date_to|add_class:"form-control" }}</div>
+        <div class="col-md-2 align-self-end text-end"><button class="btn btn-outline-primary">Filtrar</button></div>
+      </form>
+    </div>
+  </div>
+  <div class="card card-erp">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Fecha</th>
+              <th>Categoría</th>
+              <th>Descripción</th>
+              <th>Proveedor</th>
+              <th class="text-end">Importe</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for expense in expenses %}
+            <tr>
+              <td>{{ expense.date|date:"d/m/Y" }}</td>
+              <td>{{ expense.get_category_display }}</td>
+              <td>{{ expense.description }}</td>
+              <td>{{ expense.provider.name|default:"-" }}</td>
+              <td class="text-end">${{ expense.total_with_vat }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">No hay gastos registrados.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

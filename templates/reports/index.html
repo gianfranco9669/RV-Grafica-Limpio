@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Reportes · RV Gráfica{% endblock %}
+{% block content %}
+<div class="container-xl">
+  <div class="row g-4">
+    <div class="col-12 col-lg-6">
+      <div class="card card-erp">
+        <div class="card-header bg-white border-0 pb-0">
+          <h2 class="h5 mb-0">Órdenes por estado</h2>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            {% for summary in orders_summary %}
+            <li class="list-group-item d-flex justify-content-between">
+              <span>{{ summary.status }}</span>
+              <span class="fw-semibold">{{ summary.total }}</span>
+            </li>
+            {% empty %}
+            <li class="list-group-item text-muted">Sin datos de órdenes.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card card-erp">
+        <div class="card-header bg-white border-0 pb-0">
+          <h2 class="h5 mb-0">Resumen económico</h2>
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-7">Facturación (total)</dt><dd class="col-5 text-end">${{ invoice_totals.total|default:0 }}</dd>
+            <dt class="col-7">Facturación (neto)</dt><dd class="col-5 text-end">${{ invoice_totals.subtotal|default:0 }}</dd>
+            <dt class="col-7">Saldo cuentas corrientes</dt><dd class="col-5 text-end">${{ finance_balance }}</dd>
+            <dt class="col-7">Gastos registrados</dt><dd class="col-5 text-end">${{ expenses_total.total|default:0 }}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

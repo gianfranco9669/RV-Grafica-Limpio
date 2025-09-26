@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load form_filters %}
+{% block title %}Usuarios · RV Gráfica{% endblock %}
+{% block content %}
+<div class="container-xl">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1">Usuarios del sistema</h1>
+      <p class="text-muted mb-0">Gestiona roles y accesos de operarios, administrativos y administradores.</p>
+    </div>
+  </div>
+  <div class="card card-erp">
+    <div class="card-body">
+      <form method="get" class="row g-3 mb-4">
+        <div class="col-md-4">
+          {{ filter_form.role.label_tag }}
+          {{ filter_form.role|add_class:"form-select" }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Estado</label>
+          <select name="is_active" class="form-select">
+            <option value="">Todos</option>
+            <option value="True" {% if filter_form['is_active'].value == "True" %}selected{% endif %}>Activos</option>
+            <option value="False" {% if filter_form['is_active'].value == "False" %}selected{% endif %}>Inactivos</option>
+          </select>
+        </div>
+        <div class="col-md-4 align-self-end text-end">
+          <button class="btn btn-outline-primary">Filtrar</button>
+        </div>
+      </form>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Usuario</th>
+              <th>Nombre</th>
+              <th>Rol</th>
+              <th>Último acceso</th>
+              <th class="text-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+            <tr>
+              <td class="fw-medium">{{ user.username }}</td>
+              <td>{{ user.get_full_name|default:user.email }}</td>
+              <td><span class="badge bg-primary-subtle text-primary-emphasis badge-status">{{ user.get_role_display }}</span></td>
+              <td>{{ user.last_login|default:"Nunca" }}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-secondary" href="{% url 'users:edit' user.pk %}"><i class="bi bi-pencil"></i></a>
+                {% if user.is_active %}
+                <a class="btn btn-sm btn-outline-danger" href="{% url 'users:deactivate' user.pk %}"><i class="bi bi-person-x"></i></a>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">No hay usuarios cargados.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

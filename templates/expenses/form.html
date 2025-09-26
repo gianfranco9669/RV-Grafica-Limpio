@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load form_filters %}
+{% block title %}Nuevo gasto · RV Gráfica{% endblock %}
+{% block content %}
+<div class="container-md">
+  <div class="card card-erp">
+    <div class="card-header bg-white border-0 pb-0">
+      <h1 class="h4">Registrar gasto</h1>
+    </div>
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="row g-3">
+          {% for field in form %}
+          <div class="col-md-6">
+            <label class="form-label" for="id_{{ field.name }}">{{ field.label }}</label>
+            {{ field|add_class:"form-control" }}
+            {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+          {% endfor %}
+        </div>
+        <div class="d-flex justify-content-end gap-2 mt-4">
+          <a class="btn btn-outline-secondary" href="{% url 'expenses:index' %}">Cancelar</a>
+          <button class="btn btn-primary" type="submit">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

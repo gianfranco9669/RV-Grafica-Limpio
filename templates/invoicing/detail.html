@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load form_filters %}
+{% block title %}Comprobante {{ invoice.number }} · RV Gráfica{% endblock %}
+{% block content %}
+<div class="container-xxl">
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <h1 class="h3 mb-1">{{ invoice.get_document_type_display }} {{ invoice.number }}</h1>
+      <p class="text-muted mb-0">{{ invoice.contact.name }} · Emitida el {{ invoice.issue_date|date:"d/m/Y" }}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <form method="post" action="{% url 'invoicing:post_accounting' invoice.pk %}">
+        {% csrf_token %}
+        <button class="btn btn-success" type="submit">Contabilizar</button>
+      </form>
+      <a class="btn btn-outline-secondary" href="{% url 'invoicing:edit' invoice.pk %}">Editar</a>
+    </div>
+  </div>
+  <div class="row g-4">
+    <div class="col-12 col-xl-8">
+      <div class="card card-erp mb-4">
+        <div class="card-header bg-white border-0 pb-0 d-flex justify-content-between">
+          <h2 class="h5 mb-0">Detalle</h2>
+          <span class="badge bg-secondary badge-status">Subtotal: ${{ invoice.subtotal }}</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Descripción</th>
+                  <th class="text-end">Cantidad</th>
+                  <th class="text-end">Precio</th>
+                  <th class="text-end">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for line in invoice.lines.all %}
+                <tr>
+                  <td>{{ line.description }}</td>
+                  <td class="text-end">{{ line.quantity }}</td>
+                  <td class="text-end">${{ line.unit_price }}</td>
+                  <td class="text-end">${{ line.subtotal }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted py-4">No hay renglones cargados.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot class="table-light">
+                <tr><th colspan="3" class="text-end">IVA</th><th class="text-end">${{ invoice.vat_amount }}</th></tr>
+                <tr><th colspan="3" class="text-end">Percepción IVA</th><th class="text-end">${{ invoice.perception_amount }}</th></tr>
+                <tr><th colspan="3" class="text-end">Ingresos Brutos</th><th class="text-end">${{ invoice.gross_income_amount }}</th></tr>
+                <tr><th colspan="3" class="text-end">Total</th><th class="text-end">${{ invoice.total }}</th></tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="card card-erp">
+        <div class="card-header bg-white border-0 pb-0">
+          <h2 class="h5 mb-0">Observaciones</h2>
+        </div>
+        <div class="card-body">
+          <p class="mb-0">{{ invoice.observations|default:"Sin observaciones" }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-xl-4">
+      <div class="card card-erp">
+        <div class="card-header bg-white border-0 pb-0">
+          <h2 class="h5 mb-0">Agregar renglón</h2>
+        </div>
+        <div class="card-body">
+          <form method="post" action="{% url 'invoicing:add_line' invoice.pk %}" novalidate>
+            {% csrf_token %}
+            {% for field in line_form %}
+            <div class="mb-3">
+              <label class="form-label" for="id_{{ field.name }}">{{ field.label }}</label>
+              {{ field|add_class:"form-control" }}
+              {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            {% endfor %}
+            <button class="btn btn-primary w-100" type="submit">Agregar detalle</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

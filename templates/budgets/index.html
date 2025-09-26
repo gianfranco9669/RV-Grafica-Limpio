@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load form_filters %}
+{% block title %}Presupuestos · RV Gráfica{% endblock %}
+{% block content %}
+<div class="container-xxl">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1">Presupuestos</h1>
+      <p class="text-muted mb-0">Calculá trabajos por metro cuadrado y convertí presupuestos en órdenes con un clic.</p>
+    </div>
+    <a class="btn btn-primary" href="{% url 'budgets:create' %}"><i class="bi bi-plus-lg me-1"></i>Nuevo presupuesto</a>
+  </div>
+  <div class="card card-erp mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-3">{{ filter_form.status.label_tag }}{{ filter_form.status|add_class:"form-select" }}</div>
+        <div class="col-md-3">{{ filter_form.client.label_tag }}{{ filter_form.client|add_class:"form-select" }}</div>
+        <div class="col-md-3">{{ filter_form.valid_until.label_tag }}{{ filter_form.valid_until|add_class:"form-control" }}</div>
+        <div class="col-md-3 align-self-end text-end"><button class="btn btn-outline-primary">Filtrar</button></div>
+      </form>
+    </div>
+  </div>
+  <div class="card card-erp">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>N°</th>
+              <th>Título</th>
+              <th>Cliente</th>
+              <th>Estado</th>
+              <th>Vigencia</th>
+              <th class="text-end">Importe</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for budget in budgets %}
+            <tr>
+              <td class="fw-bold">{{ budget.number }}</td>
+              <td>{{ budget.title }}</td>
+              <td>{{ budget.client.name }}</td>
+              <td><span class="badge bg-primary-subtle text-primary-emphasis badge-status">{{ budget.get_status_display }}</span></td>
+              <td>{{ budget.valid_until|date:"d/m/Y" }}</td>
+              <td class="text-end">${{ budget.total_amount }}</td>
+              <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{% url 'budgets:detail' budget.pk %}">Ver</a></td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">No hay presupuestos cargados.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

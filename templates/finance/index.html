@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load form_filters %}
+{% block title %}Finanzas · RV Gráfica{% endblock %}
+{% block content %}
+<div class="container-xl">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1">Cuentas corrientes</h1>
+      <p class="text-muted mb-0">Cobros y pagos impactan en clientes, proveedores y contabilidad.</p>
+    </div>
+    <a class="btn btn-primary" href="{% url 'finance:create' %}"><i class="bi bi-plus-lg me-1"></i>Nuevo movimiento</a>
+  </div>
+  <div class="alert alert-info d-flex justify-content-between align-items-center">
+    <span>Saldo acumulado</span>
+    <strong>${{ balance }}</strong>
+  </div>
+  <div class="card card-erp mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-3">{{ filter_form.movement_type.label_tag }}{{ filter_form.movement_type|add_class:"form-select" }}</div>
+        <div class="col-md-3">
+          <label class="form-label" for="id_contact">Contacto</label>
+          <input class="form-control" type="text" name="contact" id="id_contact" value="{{ filter_form['contact'].value }}" />
+        </div>
+        <div class="col-md-2">{{ filter_form.date_from.label_tag }}{{ filter_form.date_from|add_class:"form-control" }}</div>
+        <div class="col-md-2">{{ filter_form.date_to.label_tag }}{{ filter_form.date_to|add_class:"form-control" }}</div>
+        <div class="col-md-2 align-self-end text-end"><button class="btn btn-outline-primary">Filtrar</button></div>
+      </form>
+    </div>
+  </div>
+  <div class="card card-erp">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Fecha</th>
+              <th>Tipo</th>
+              <th>Contacto</th>
+              <th>Comprobante</th>
+              <th class="text-end">Importe</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for movement in movements %}
+            <tr>
+              <td>{{ movement.date|date:"d/m/Y" }}</td>
+              <td>{{ movement.get_movement_type_display }}</td>
+              <td>{{ movement.contact.name }}</td>
+              <td>{% if movement.invoice %}<a href="{% url 'invoicing:detail' movement.invoice.pk %}">{{ movement.invoice.number }}</a>{% else %}-{% endif %}</td>
+              <td class="text-end">${{ movement.signed_amount }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">No hay movimientos registrados.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
